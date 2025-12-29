@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "ESNext", // Node.js 환경에서도 최신 문법을 사용합니다.
+        "lib": [
+            "ESNext"
+        ], // 브라우저 관련 라이브러리(DOM)는 제외하고 핵심 문법만 가져옵니다.
+        "module": "ESNext", // Node.js 최신 모듈 방식을 사용합니다.
+        "skipLibCheck": true, // 라이브러리 타입 검사 생략
+        "moduleResolution": "bundler", // Vite 환경에 맞춘 모듈 탐색
+        "allowSyntheticDefaultImports": true, // default export가 없는 라이브러리도 자연스럽게 import하게 해줍니다.
+        "strict": true, // 설정 파일도 엄격하게 검사합니다.
+        "noEmit": true // 여기서도 JS 파일 생성은 하지 않습니다.
+    },
+    "include": [
+        "vite.config.ts"
+    ] // 오직 Vite 설정 파일만 이 규칙을 적용받습니다.
+}

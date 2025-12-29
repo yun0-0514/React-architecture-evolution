@@ -1,0 +1,37 @@
+{
+    "compilerOptions": {
+        /* 타겟 및 라이브러리 */
+        "target": "ESNext", // 최신 자바스크립트 문법(ES2022+)으로 컴파일합니다.
+        "useDefineForClassFields": true, // 클래스 필드 문법을 최신 표준에 맞게 처리합니다. (오늘 배운 클래스 사용 시 필수)
+        "lib": [
+            "ESNext",
+            "DOM",
+            "DOM.Iterable"
+        ], // 브라우저 환경(DOM)과 최신 문법의 타입 정의를 불러옵니다.
+        "module": "ESNext", // 최신 모듈 시스템(import/export)을 사용합니다.
+        "skipLibCheck": true, // node_modules에 있는 라이브러리의 타입 검사는 생략하여 속도를 높입니다.
+        /* 번들러(Vite) 최적화 설정 */
+        "moduleResolution": "bundler", // Vite 같은 현대적 번들러에 최적화된 모듈 찾기 방식을 사용합니다.
+        "allowImportingTsExtensions": true, // .ts 확장자가 붙은 파일 import를 허용합니다. (noEmit과 세트)
+        "isolatedModules": true, // 각 파일을 독립된 모듈로 처리합니다. (Vite의 빠른 빌드를 위해 필수)
+        "moduleDetection": "force", // 모든 파일을 모듈로 간주하여 전역 스코프 오염을 방지합니다.
+        "noEmit": true, // TS가 직접 JS 파일을 만들지 않게 합니다. (변환은 Vite가 담당합니다.)
+        "jsx": "react-jsx", // 리액트 17+ 방식의 JSX 변환을 사용합니다. (React import 생략 가능)
+        /* 엄격도 및 품질 관리 (사수의 추천!) */
+        "strict": true, // 모든 엄격한 타입 검사 옵션을 켭니다. (시니어급 성장을 위한 필수 옵션)
+        "noUnusedLocals": true, // 쓰지 않는 지역 변수가 있으면 에러를 냅니다.
+        "noUnusedParameters": true, // 쓰지 않는 함수 파라미터가 있으면 에러를 냅니다.
+        "noFallthroughCasesInSwitch": true, // switch문에서 break가 없는 경우를 방지합니다.
+        /* 점진적 마이그레이션을 위한 옵션 */
+        "allowJs": true, // 기존 V3의 .js 파일들을 불러올 수 있게 허용합니다.
+        "baseUrl": ".", // 경로 별칭의 기준점을 현재 폴더로 잡습니다.
+        "paths": {
+            "@/*": [
+                "src/*"
+            ] // import할 때 src를 @로 줄여 쓸 수 있게 합니다.
+        }
+    },
+    "include": [
+        "src"
+    ] // src 폴더 안의 파일들만 검사 대상으로 삼습니다.
+}
