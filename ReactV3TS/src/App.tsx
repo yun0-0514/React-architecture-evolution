@@ -1,11 +1,8 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/home.jsx';
-import { MemberProvider } from './contexts/MemberContext.jsx';
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import { MemberProvider } from "./contexts/MemberContext";
 
 function App() {
-
-
   return (
     <>
       <MemberProvider>
@@ -16,7 +13,7 @@ function App() {
         </BrowserRouter>
       </MemberProvider>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

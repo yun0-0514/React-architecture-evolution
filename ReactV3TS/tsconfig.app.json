@@ -23,7 +23,7 @@
         "noUnusedParameters": true, // 쓰지 않는 함수 파라미터가 있으면 에러를 냅니다.
         "noFallthroughCasesInSwitch": true, // switch문에서 break가 없는 경우를 방지합니다.
         /* 점진적 마이그레이션을 위한 옵션 */
-        "allowJs": true, // 기존 V3의 .js 파일들을 불러올 수 있게 허용합니다.
+        "allowJs": false, // 기존 V3의 .js 파일들을 불러올 수 있게 허용 설정(false로 설정예정)
         "baseUrl": ".", // 경로 별칭의 기준점을 현재 폴더로 잡습니다.
         "paths": {
             "@/*": [

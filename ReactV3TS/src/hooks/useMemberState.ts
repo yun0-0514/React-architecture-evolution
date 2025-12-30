@@ -12,9 +12,9 @@ export const useMemberInfo = () => {
   if (context.error) {
     window.alert("데이터 로딩 실패..");
   }
-  const { data, isLoading, error } = context;
-  if (!isLoading && !Array.isArray(data)) {
-    console.error("데이터가 배열이 아닙니다:", data);
+  const { members, isLoading, error } = context;
+  if (!isLoading && !Array.isArray(members)) {
+    console.error("데이터가 배열이 아닙니다:", members);
   }
-  return { data, isLoading, error };
+  return { members, isLoading, error };
 };
