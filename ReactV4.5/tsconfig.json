@@ -1,0 +1,11 @@
+{
+    "files": [], // 이 파일 자체는 어떤 소스 파일도 직접 검사하지 않음을 의미합니다
+    "references": [
+        {
+            "path": "./tsconfig.app.json" //실제 리액트 앱 소스 코드용 설정으로 연결
+        },
+        {
+            "path": "./tsconfig.node.json" //vite 설정 파일용 설정으로 연결
+        }
+    ]
+}

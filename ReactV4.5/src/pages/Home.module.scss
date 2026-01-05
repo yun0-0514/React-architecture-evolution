@@ -1,0 +1,33 @@
+$bg-color: #f8f9fa;
+$gap-size: 2rem;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $gap-size;
+  background-color: $bg-color;
+  min-height: 100vh;
+  justify-content: center;
+  align-items: flex-start;
+  padding: $gap-size;
+  align-items: center;
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+  }
+}
+
+.listSection {
+  width: 100%;
+  max-width: 300px;
+}
+
+.formSection {
+  width: 100%;
+  max-width: 300px;
+  @media (min-width: 1024px) {
+    position: sticky;
+    top: $gap-size;
+  }
+}

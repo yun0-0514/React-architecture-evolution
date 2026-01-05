@@ -4,6 +4,7 @@ import style from "./Product.module.scss";
 import { ProductSearchCondition } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
 import { useProduct } from "../hooks/useProduct";
+import { ProductSkeleton } from "../components/ProductSkeleton";
 const ProductPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { products, isLoading } = useProduct();
@@ -35,17 +36,19 @@ const ProductPage = () => {
       {/* 하단: 리스트 영역 */}
       <section className={style.section}>
         <div className={style.listHeader}>상품 리스트</div>
-        <div className="grid grid-cols-2 gap-3 p-2 w-full">
+        <div className="grid grid-cols-2 gap-3 p-2 w-full min-h-[50vh]">
           {isLoading ? (
-            <div className="col-span-full text-center py-10 text-gray-500">
-              로딩 중입니다... ⏳
-            </div>
+            Array.from({ length: 8 }).map((_, index) => (
+              <ProductSkeleton key={index} />
+            ))
           ) : products.length > 0 ? (
             products.map((product) => (
               <ProductCard key={product.id} data={product} />
             ))
           ) : (
-            <div>검색된 상품이 없습니다.</div>
+            <div className="col-span-2 justify-center py-20 text-gray-500">
+              검색된 상품이 없습니다.
+            </div>
           )}
         </div>
       </section>
