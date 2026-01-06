@@ -1,16 +1,123 @@
-# React + Vite
+# ⚓ ReactV2: '배'에서 '항구'로, 전역 상태 관리와 영속성 구축
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **"Context는 데이터를 실어 나르는 배가 아니라, 상태가 관리되는 항구여야 한다."**
+> V1의 휘발성 데이터 문제를 해결하기 위해 `useReducer`와 `LocalStorage`를 도입하고, 렌더링 최적화를 실현한 리팩토링 버전입니다.
 
-Currently, two official plugins are available:
+## ❗ V1의 한계와 리팩토링 동기
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+| 구분               | V1 구조 (문제점) | 실제로 발생한 문제                | 핵심 원인                                        |
+| ------------------ | ---------------- | --------------------------------- | ------------------------------------------------ |
+| **전역 상태**      | Context 사용     | 반쪽짜리 전역 상태                | 상태 관리 주체가 Context가 아닌 개별 훅에 분산됨 |
+| **Props Drilling** | 부분적 해결      | 자식에서 데이터 수정 시 부모 의존 | 액션(Dispatch)이 전역에 없음                     |
+| **데이터 영속성**  | 없음             | 새로고침 시 데이터 초기화         | State의 휘발성 (LocalStorage 부재)               |
+| **책임 분리**      | 읽기/쓰기 혼재   | 불필요한 리렌더링 발생            | 데이터 조회와 수정 로직이 한 곳에 섞임           |
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ 주요 리팩토링 포인트
 
-## Expanding the ESLint configuration
+### 1. Reducer 기반의 상태 변경 중앙화: '단순 전달'에서 '엄격한 관리'로
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+V1의 Context가 단순히 훅의 `useState` 값을 자식에게 실어 나르는 **'단순 전달자(배)'**였다면, V2에서는 비즈니스 로직을 중앙화하고 상태 변경을 엄격히 통제하는 **'관리자(항구)'** 구조로 탈바꿈했습니다.
+
+- **V1의 문제 (State 기반)**: Context가 데이터 통로 역할만 수행하여, 상태 변경 로직이 여러 컴포넌트에 파편화되었습니다. 이로 인해 데이터가 어디서, 왜 변하는지 추적하기가 매우 어려웠습니다.
+- **V2의 개선 (Reducer 기반)**: 상태 관리의 주도권을 컴포넌트가 아닌 **`memberReducer`**라는 중앙 통제실로 가져왔습니다.
+- **은행 창구 모델 도입**: 컴포넌트는 상태를 직접 수정할 수 없으며, 반드시 정해진 **전표(Action)**를 발행하여 리듀서에 제출해야만 합니다.
+- **관심사 분리**: "데이터를 어떻게 수정할 것인가"라는 비즈니스 로직을 UI와 완전히 분리하여 순수한 자바스크립트 함수 내부에서 관리하게 되었습니다.
+
+**이 변화가 가져온 가치:**
+
+- **예측 가능성**: 모든 상태 변화가 한 곳(`switch` 문)에서 관리되어 데이터 흐름 파악이 명확해졌습니다.
+- **디버깅 최적화**: 어떤 액션이 발생했는지 로그만 확인하면 에러의 원인을 즉시 파악할 수 있습니다.
+- **안정성**: 컴포넌트의 실수로 인한 예기치 못한 상태 오염을 원천 차단했습니다.
+
+### 2. 데이터 로드 엔진: `useFetch` 하이브리드 설계
+
+단순히 데이터를 가져오는 것을 넘어, 향후 실제 API 연동까지 고려한 확장성 있는 구조로 설계했습니다.
+
+- **LocalStorage 활용**: 서버가 없는 환경에서 데이터 영속성을 확보했습니다.
+- **비동기 시뮬레이션**: `setTimeout`을 사용하여 실제 네트워크 지연 상황을 재현했습니다.
+
+### 3. '3중 방화벽'을 통한 트러블 슈팅
+
+새로고침 시 발생하는 `White Screen` 에러(데이터 공백 문제)를 해결하기 위해 `initialized` 플래그를 도입했습니다.
+
+- **방화벽 1**: 데이터가 준비될 때까지 초기화를 대기합니다.
+- **방화벽 2**: 초기화가 완료된 후에만 로컬 스토리지 저장을 허용하여 데이터 유실을 방지합니다.
+
+---
+
+## ⚡ 최적화 및 방어적 설계
+
+### 1. Context 분리 (`useMemo` 최적화) 🌸
+
+`contextValue`(데이터)와 `contextDispatchValue`(함수)를 분리하여 제공합니다. 데이터가 변경되어도 수정/삭제 함수만 참조하는 컴포넌트의 불필요한 리렌더링을 차단했습니다.
+
+### 2. 소비자용 훅의 강화 (Safety First) 🛡️
+
+`useMemberState` 내부에 구체적인 에러 핸들링과 타입 체크 로직을 추가하여 잘못된 컨텍스트 접근을 조기에 차단했습니다.
+
+---
+
+## 💡 핵심 코드 스니펫
+
+### 🛡️ 초기화 및 자동 저장 시스템
+
+```javascript
+// MemberProvider.js
+
+// [방화벽 1] 초기 데이터 동기화
+useEffect(() => {
+  if (isLoading || initialized || !fetchedData) return;
+  onInit(fetchedData);
+}, [isLoading, fetchedData, initialized, onInit]);
+
+// [방화벽 2] 자동 저장 시스템 (초기화 완료 후 작동)
+useEffect(() => {
+  // 초기화 이전에 localStorage에 덮어쓰는 문제를 방지하기 위한 안전 장치!!
+  if (!initialized) return;
+  localStorage.setItem("member", JSON.stringify(members));
+}, [members, initialized]);
+```
+
+### ⚡ Context 분리 및 최적화
+
+```javascript
+// 데이터를 위한 컨텍스트 값
+const contextValue = useMemo(
+  () => ({
+    data: members,
+    isLoading,
+    error,
+  }),
+  [members, isLoading, error]
+);
+
+// 함수(액션)를 위한 컨텍스트 값
+const contextDispatchValue = useMemo(
+  () => ({
+    onCreate,
+    onDelete,
+    onUpdate,
+  }),
+  [onCreate, onDelete, onUpdate]
+);
+```
+
+---
+
+## 🏁 리팩토링 결과
+
+- **영속성 확보**: 브라우저를 종료하거나 새로고침해도 사용자의 데이터가 유지됩니다.
+- **예측 가능한 상태**: Reducer를 통해 어떤 액션이 상태를 변화시켰는지 명확히 파악 가능합니다.
+- **렌더링 효율**: Context 분리를 통해 하위 컴포넌트의 불필요한 리렌더링을 방지했습니다.
+
+---
+
+### 🔗 관련 기록 (Velog)
+
+- [[React.js] V2 리팩토링: '배'였던 Context를 '항구'로 바꾸다 (Reducer & 영속성)](https://www.google.com/search?q=%EC%82%AC%EC%9A%A9%EC%9E%90%EB%8B%98%EC%9D%98_V2_%ED%8F%AC%EC%8A%A4%ED%8A%B8_%EB%A7%81%ED%81%AC)
+
+---
+
+**다음 단계 예고:** 실제 서버 환경을 제공하는 `json-server` 연동과, 데이터에 대한 생성, 조회,수정, 삭제의 기능구현을 하는 V3버전으로 이어집니다!!

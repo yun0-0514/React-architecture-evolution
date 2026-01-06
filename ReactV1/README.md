@@ -1,16 +1,106 @@
-# React + Vite
+# 🚀 ReactV1: 커스텀 훅 기반 모듈식 아키텍처 설계
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **"컴포넌트는 UI만 담당하고, 로직은 훅이 담당한다."** > 커스텀 훅을 활용하여 관심사를 분리하고, 확장성 있는 단방향 데이터 흐름을 구축한 리액트 아키텍처 초안입니다.
 
-Currently, two official plugins are available:
+## 🎯 설계 목표
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **관심사의 분리 (SoC)**: UI, 비즈니스 로직, 데이터 레이어의 역할을 명확히 분리
+- **재사용성 확보**: 동일한 로직을 여러 컴포넌트에서 공유할 수 있는 커스텀 훅 구조 설계
+- **단방향 데이터 흐름**: `데이터 → API → Hook → Context → UI`로 이어지는 명확한 흐름 구축
 
-## React Compiler
+## 🏗️ 4단계 레이어 아키텍처
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+이번 프로젝트에서는 유지보수성을 극대화하기 위해 다음과 같이 계층을 나누어 설계했습니다.
 
-## Expanding the ESLint configuration
+| 단계           | 역할              | 주요 파일            | 특징                                                     |
+| :------------- | :---------------- | :------------------- | :------------------------------------------------------- |
+| **1. Data**    | 순수 데이터       | `mockData.js`        | DB 연동 전 사용하는 불변 순수 JS 객체                    |
+| **2. Network** | API 로직          | `memberApi.js`       | Promise 기반 가상 비동기 처리 (네트워크 지연 시뮬레이션) |
+| **3. Hook**    | 라이프사이클 관리 | `useFetchMembers.js` | 데이터 패칭 및 로딩/에러 상태 관리 핵심 엔진             |
+| **4. Context** | 전역 상태 공급    | `MemberContext.js`   | 준비된 상태를 하위 컴포넌트로 전달하는 통로 역할         |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🧭 데이터 흐름 (Data Flow)
+
+1. **MockData**: 실제 서버를 대신하는 순수 데이터 레이어
+2. **memberApi**: `setTimeout`과 `Promise`로 구현된 가상 API 레이어
+3. **useFetchMembers**: API를 호출하고 비동기 상태(`data`, `isLoading`, `error`)를 캡슐화
+4. **MemberContext & Provider**: `App.jsx`에서 데이터를 전역으로 공급
+5. **useMemberState (Consumer Hook)**: 컴포넌트가 안전하게 Context를 소비할 수 있도록 래핑
+
+## 💡 핵심 설계 포인트
+
+### 1. 소비자 전용 커스텀 훅 (`useMemberState`)
+
+- `useContext`를 직접 사용하는 대신 전용 훅으로 감싸 **Provider 유효 범위 바깥에서의 호출을 방지**했습니다.
+- 잘못된 접근 시 명확한 에러 메시지를 제공하여 런타임 안정성을 확보했습니다.
+
+```typescript
+import { useContext } from "react";
+import { MemberContext } from "../contexts/MemberContext";
+
+export const useMemberState = () => {
+  const contexts = useContext(MemberContext);
+  if (contexts === null || contexts === undefined) {
+    throw new Error(
+      "context 할당에 실패하였습니다, 구조 확인 후 코드를 수정하세요,Provider의 유효 범위 바깥에서 호출됨"
+    );
+  }
+  if (contexts.error) {
+    window.alert("데이터 로딩 실패..");
+  }
+  return {
+    data: contexts.data,
+    isLoading: contexts.isLoading,
+  };
+};
+```
+
+### 2. 비동기 상태의 캡슐화 (`useFetchMembers`)
+
+- 비동기 상태(data, isLoading, error)를 하나로 캡슐화하여 관리합니다.
+- MockData → memberApi → useFetchMembers → MemberContext → useMemberState로 이어지는 견고한 데이터 플로우를 구축했습니다.
+
+```typescript
+const useFetchMembers = () => {
+  const [data, setData] = useState([]); //typescript를 대비한 초기 값 설정
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const result = await fetchMembers();
+        setData(result);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []); //현제는 url이 없으므로 의존성 배열은 빈 배열로 두고, 초기 로드 시 1회 실행을 명시적으로 보장
+  return { data, isLoading, error };
+};
+export default useFetchMembers;
+```
+
+### 3. 파일 수 증가 < 코드 복잡도 감소
+
+- 역할별로 파일을 분리하여 초반 파일 수는 늘어났으나, 특정 로직(API 경로 등) 수정 시 해당 파일만 확인하면 되는 **유지보수 효율성**을 얻었습니다.
+
+## 👍 리팩토링 후 얻은 장점
+
+- **UI 컴포넌트의 단순화**: `Home.jsx`는 오직 렌더링에만 집중하여 가독성이 향상되었습니다.
+- **테스트 용이성**: 비즈니스 로직이 훅으로 분리되어 독립적인 단위 테스트가 가능해졌습니다.
+- **교체 용이성**: 이후 실제 DB 도입 시 API 레이어만 교체하면 다른 코드는 수정할 필요가 없습니다.
+
+---
+
+### 🔗 관련 기록 (Velog)
+
+- [[React.js] :커스텀 훅과 커스텀 훅을 활용한 모듈식 아키텍처 설계](https://velog.io/@yun0-0514/React.js-%EC%BB%A4%EC%8A%A4%ED%85%80-%ED%9B%85%EA%B3%BC-%EC%BB%A4%EC%8A%A4%ED%85%80-%ED%9B%85%EC%9D%84-%ED%99%9C%EC%9A%A9%ED%95%9C-%EB%AA%A8%EB%93%88%EC%8B%9D-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EC%84%A4%EA%B3%84)
+- [[React.js] :아키텍처 기반 커스텀 훅 구현 ReactV1](https://velog.io/@yun0-0514/React.js-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-%EA%B8%B0%EB%B0%98-%EC%BB%A4%EC%8A%A4%ED%85%80-%ED%9B%85-%EA%B5%AC%ED%98%84-ReactV1)
+
+---
+
+**다음 단계 예고:** V1의 한계(리렌더링 최적화 부재, 캐싱 미비)를 분석하고, `useReducer`와 최적화 기법을 도입한 **V2**로 발전시킵니다.
