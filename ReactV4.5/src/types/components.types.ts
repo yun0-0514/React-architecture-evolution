@@ -15,3 +15,9 @@ export interface ProductCardProps {
 export interface SearchBarProps {
   onSearch: (codition: ProductSearchCondition) => void;
 }
+
+export interface InfiniteScrollSentinelProps {
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+}

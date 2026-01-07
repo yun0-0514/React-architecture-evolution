@@ -19,14 +19,14 @@ const ProductCard = ({ data }: ProductCardProps) => {
         )}
         {/* NEW 배지 (품절 아닐 때만 노출) */}
         {!data.isSoldOut && data.isNew && (
-          <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
+          <div className="absolute bottom-2 right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
             NEW
           </div>
         )}
       </div>
 
       {/* 2. 상품 정보 영역 */}
-      <div className="mt-3 flex flex-col flex-1 gab-1">
+      <div className="mt-3 flex flex-col flex-1 gap-1">
         {/* 카테고리 & 브랜드 */}
         <div className="flex flex-col gap-1 text-[10px] text-gray-400">
           <span>{data.category}</span>
@@ -42,17 +42,19 @@ const ProductCard = ({ data }: ProductCardProps) => {
         </h3>
 
         {/* 가격 & 별점 */}
-        <div>
+        <div className="mt-auto">
           <p className="text-sm font-bold text-blue-600">{formattedPrice}원</p>
           {/* ⭐ 별점 로직 (5개 반복) */}
-          <div className="flex item-center gap-0.5 mt-auto">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <IoMdStar
-                key={index}
-                // 나중에 CSS 시간에 색상 입힐 부분 (조건: 현재 인덱스 < 평점)
-                // 예: style={{ color: index < Math.floor(data.rating) ? "gold" : "gray" }}
-              />
-            ))}
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-0.5 text-yellow-400">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <IoMdStar
+                  key={index}
+                  // 나중에 CSS 시간에 색상 입힐 부분 (조건: 현재 인덱스 < 평점)
+                  // 예: style={{ color: index < Math.floor(data.rating) ? "gold" : "gray" }}
+                />
+              ))}
+            </div>
             <span>({data.reviewCount})</span>
           </div>
         </div>

@@ -20,6 +20,7 @@ export const useProduct = () => {
     queryKey: ["products", condition],
     queryFn: () => fetchProduct(condition),
     staleTime: 1000 * 60,
+    gcTime: 100 * 60 * 5,
     placeholderData: keepPreviousData,
   });
 

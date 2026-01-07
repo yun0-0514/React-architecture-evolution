@@ -3,20 +3,25 @@ import SearchBar from "../components/SearchBar";
 import style from "./Product.module.scss";
 import { ProductSearchCondition } from "../types/product.type";
 import ProductCard from "../components/ProductCard";
-import { useProduct } from "../hooks/useProduct";
+// import { useProduct } from "../hooks/useProduct";
 import { ProductSkeleton } from "../components/ProductSkeleton";
+import { useProductInfinity } from "../hooks/useProductInfinity";
+import { InfiniteScrollSentinel } from "../components/InfiniteScrollSentinel";
 const ProductPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { products, isLoading } = useProduct();
+  const {
+    products,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useProductInfinity();
 
   const searchHandle = (condition: ProductSearchCondition) => {
-    if (!condition.keyword) {
-      setSearchParams({});
-    }
-    setSearchParams({
-      filterType: condition.filterType,
-      keyword: condition.keyword,
-    });
+    const newParams: any = { ...condition };
+    if (!condition.keyword) delete newParams.keyword;
+    setSearchParams(newParams);
   };
 
   return (
@@ -42,9 +47,16 @@ const ProductPage = () => {
               <ProductSkeleton key={index} />
             ))
           ) : products.length > 0 ? (
-            products.map((product) => (
-              <ProductCard key={product.id} data={product} />
-            ))
+            <div>
+              {products.map((product) => (
+                <ProductCard key={product.id} data={product} />
+              ))}
+              <InfiniteScrollSentinel
+                fetchNextPage={fetchNextPage}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+              />
+            </div>
           ) : (
             <div className="col-span-2 justify-center py-20 text-gray-500">
               검색된 상품이 없습니다.
