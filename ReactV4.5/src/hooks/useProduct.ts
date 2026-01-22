@@ -18,6 +18,8 @@ export const useProduct = () => {
 
   const { data, isLoading, error, isPlaceholderData } = useQuery({
     queryKey: ["products", condition],
+    // 추가 변경점 :fetchProduct에 page 인자가 없으므로 기본값(Page 1, Limit 10)만 가져옵니다.
+    // 만약 일반 페이지네이션을 구현하려면 searchParams.get('page')를 넘겨야 합니다
     queryFn: () => fetchProduct(condition),
     staleTime: 1000 * 60,
     gcTime: 100 * 60 * 5,

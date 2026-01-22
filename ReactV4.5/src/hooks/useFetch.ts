@@ -1,8 +1,7 @@
 /**
  * @deprecated
- * 현재 Member 도메인에서만 사용 중입니다.
- * V5 이후 React Query로 마이그레이션 완료되면 삭제될 예정입니다.
- * 새로운 기능에는 useQuery를 사용하세요.
+ * 현재 Member 도메인에서만 사용 중.
+ * V5 이후 React Query로 마이그레이션 완료되면 삭제될 예정.
  */
 
 import { AsyncState, SuperbaseResponse } from "../types/function.types";

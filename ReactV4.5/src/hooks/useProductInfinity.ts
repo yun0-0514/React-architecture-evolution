@@ -44,8 +44,8 @@ export const useProductInfinity = () => {
       // 현재 페이지 개수 + 1 = 다음 페이지 번호
       return allPages.length + 1;
     },
-    staleTime: 100 * 60 * 1,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 100 * 60 * 1, // 1분 동안은 데이터를 '신선'하다고 간주 (API 재요청 안 함)
+    gcTime: 1000 * 60 * 5, // 5분 뒤에는 메모리에서 완전히 삭제 (Garbage Collection)
   });
 
   // 데이터 평탄화 (Optional Chaining과 OR 연산자 순서 주의)
